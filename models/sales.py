@@ -5,21 +5,27 @@ class Sales_MO(models.Model):
     _inherit = 'sale.order'
 
     def mo_button(self):
-        # mrp = []
+        mrp = []
         for record in self.order_line:
             for bom_id in record.product_id.bom_ids:
                 bom = record.env['mrp.bom'].search([('id', '=', bom_id.id)]).read()
                 if bool(bom) == True:
-                    # mrp.append(product_id)
+                    mrp.append(record.product_id.id)
                     record.env['mrp.production'].create(
                         {'product_id': record.product_id.id, 
                         'product_uom_id': record.product_id.bom_ids.product_uom_id.id,
                         'bom_id': bom_id.id,  
                         'product_qty': record.product_uom_qty})
-        return{
+
+        mrp_prod_id = self.env['mrp.production'].search([],limit=1, order='id desc')
+        
+        if len(mrp) == 1:
+            return mrp_prod_id.get_formview_action()
+        else:
+            return{
                     'type': 'ir.actions.act_window',
                     'res_model': 'mrp.production',
-                    'view_mode': 'form',
+                    'view_mode': 'tree',
                     }       
 
         # if len(mrp) == 1: 
@@ -30,4 +36,4 @@ class Sales_MO(models.Model):
         #             'type': 'ir.actions.act_window',
         #             'res_model': 'mrp.production',
         #             'view_mode': 'tree',
-        #             }       
+        #             } 
