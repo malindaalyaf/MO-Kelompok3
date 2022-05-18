@@ -6,16 +6,15 @@ class Sales_MO(models.Model):
 
     def mo_button(self):
         mrp = []
-
         for record in self.order_line:
-            for a in record.product_id.bom_ids:
-                bom = record.env['mrp.bom'].search([('id', '=', a.id)]).read()
-                if bom == True:
-                    mrp.append(product_id)
+            for bom_id in record.product_id.bom_ids:
+                bom = record.env['mrp.bom'].search([('id', '=', bom_id.id)]).read()
+                if bool(bom) == True:
+                    mrp.append(product_id.id)
                     record.env['mrp.production'].create(
                         {'product_id': record.product_id.id, 
-                        'product_uom_id': record.product_id.bom_ids.product_uom_id.id, 
-                        'bom_id': a.id, 
+                        'product_uom_id': record.product_id.bom_ids.product_uom_id.id,
+                        'bom_id': bom_id.id,  
                         'product_qty': record.product_uom_qty})
 
         if len(mrp) == 1: 
